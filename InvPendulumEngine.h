@@ -12,7 +12,6 @@ class InvPendulumEngine
 
         void step();
 
-        double (*controller) (double cart_pos, double pen_angle);
         // getters and setters
         double Get_sumulation_freq() { return simulation_freq; }
         void Set_sumulation_freq(double val) { simulation_freq = val; }
@@ -30,9 +29,14 @@ class InvPendulumEngine
         void Set_gravity(double val) { gravity = val; }
         double Get_cart_v() { return cart_v; }
         void Set_cart_v(double val) { cart_v = val; }
+        void Set_controller_fun( double (*controller) (double, double) ) { controller = val; }
 
     private:
         int simulation_freq;
+        
+        // the controller function will be called every ctrl_step_len step of simulation
+        int ctrl_step_len;
+        
         double pen_len;
         double pen_mass;
         double pen_angle;
@@ -40,6 +44,9 @@ class InvPendulumEngine
         double cart_pos;
         double gravity;
         double cart_v;
+        
+        // controller function pointer, returns servo position signal.
+        double (*controller) (double cart_pos, double pen_angle);
 };
 
 #endif // INVPENDULUMENGINE_H
