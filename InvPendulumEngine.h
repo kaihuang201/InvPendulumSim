@@ -29,9 +29,9 @@ class InvPendulumEngine
         void Set_cart_pos(double val) { cart_pos = val; }
         double Get_gravity() { return gravity; }
         void Set_gravity(double val) { gravity = val; }
-        double Get_cart_v() { return cart_v; }
-        void Set_cart_v(double val) { cart_v = val; }
-        void Set_controller_fun( double (*controller) (double, double) ) { controller = val; }
+        double Get_cart_vel() { return cart_vel; }
+        void Set_cart_vel(double val) { cart_vel = val; }
+        void Set_controller_fun( double (*controller) (double, double) ) { this->controller = controller; }
 
 		enum IntegrationMethod {
 			EULER,
@@ -42,7 +42,7 @@ class InvPendulumEngine
 		void SetIntegrationMethod(IntegrationMethod im) { step_im = im; }
 
     private:
-        int simulation_freq;
+        double simulation_freq;
         
         // the controller function will be called every ctrl_step_len step of simulation
         int ctrl_step_len;
@@ -53,9 +53,10 @@ class InvPendulumEngine
 		double pen_angular_vel;
         double cart_mass;
         double cart_pos;
-		double cart_v;
+		double cart_vel;
 
 		double force;
+		double nextForce;
 
         double gravity;
         
