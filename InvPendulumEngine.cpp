@@ -4,6 +4,8 @@
 InvPendulumEngine::InvPendulumEngine()
 {
     //ctor
+	this->time_step = 0.050; //50 ms
+
     this->pen_len = 1.0;
     this->pen_mass = 1.0;
     this->pen_angle = 0.0;
@@ -70,7 +72,7 @@ void InvPendulumEngine::UpdatePhysicsEuler()
 	double M=this->cart_mass;
 	double L=this->pen_len;
 	double g=this->gravity;
-	double dt=simulation_freq;
+	double dt=this->time_step;
 	double x1=this->cart_pos, x2=this->cart_vel, x3=this->pen_angle, x4=this->pen_angular_vel;
 	double u = this->force;
 

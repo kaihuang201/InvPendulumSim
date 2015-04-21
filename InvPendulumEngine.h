@@ -13,8 +13,8 @@ class InvPendulumEngine
         void step();
 
         // getters and setters
-        double Get_simulation_freq() { return simulation_freq; }
-        void Set_simulation_freq(double val) { simulation_freq = val; }
+        double Get_time_step() { return time_step; }
+        void Set_time_step(double val) { time_step = val; }
         double Get_pen_len() { return pen_len; }
         void Set_pen_len(double val) { pen_len = val; }
         double Get_pen_mass() { return pen_mass; }
@@ -42,7 +42,7 @@ class InvPendulumEngine
 		void SetIntegrationMethod(IntegrationMethod im) { step_im = im; }
 
     private:
-        double simulation_freq;
+        double time_step;
         
         // the controller function will be called every ctrl_step_len step of simulation
         int ctrl_step_len;
