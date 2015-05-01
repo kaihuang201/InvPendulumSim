@@ -4,7 +4,7 @@
 InvPendulumEngine::InvPendulumEngine()
 {
     //ctor
-	this->time_step = 0.050; //50 ms
+	this->time_step = 0.001; //1 ms
 
     this->pen_len = 1.0;
     this->pen_mass = 5.0;
