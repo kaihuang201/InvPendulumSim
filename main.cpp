@@ -41,7 +41,7 @@ int main()
     sf::RenderWindow app(sf::VideoMode(800, 600), "SFML window");
 
     InvPendulumEngine engine;
-    engine.Set_pen_angle(90.0);
+    engine.Set_pen_angle(-45.0);
 
     double timestep = engine.Get_time_step();
     double accumulator = 0;

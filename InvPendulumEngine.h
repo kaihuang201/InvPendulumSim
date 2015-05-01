@@ -1,6 +1,9 @@
 #ifndef INVPENDULUMENGINE_H
 #define INVPENDULUMENGINE_H
 
+#define M_PI 3.14159265
+#define DEG_TO_RAD M_PI/180.0
+
 
 class InvPendulumEngine
 {
@@ -19,8 +22,8 @@ class InvPendulumEngine
         void Set_pen_len(double val) { pen_len = val; }
         double Get_pen_mass() { return pen_mass; }
         void Set_pen_mass(double val) { pen_mass = val; }
-        double Get_pen_angle() { return pen_angle; }
-        void Set_pen_angle(double val) { pen_angle = val; }
+        double Get_pen_angle() { return pen_angle/(DEG_TO_RAD); }
+        void Set_pen_angle(double val) { pen_angle = val*(DEG_TO_RAD); }
 		double Get_pen_angular_vel() { return pen_angular_vel; }
 		void Set_pen_angular_vel(double val) { pen_angular_vel = val; }
         double Get_cart_mass() { return cart_mass; }
@@ -43,10 +46,10 @@ class InvPendulumEngine
 
     private:
         double time_step;
-        
+
         // the controller function will be called every ctrl_step_len step of simulation
         int ctrl_step_len;
-        
+
         double pen_len;
         double pen_mass;
         double pen_angle;
@@ -59,7 +62,7 @@ class InvPendulumEngine
 		double nextForce;
 
         double gravity;
-        
+
         // controller function pointer, returns servo position signal.
         double (*controller) (double cart_pos, double pen_angle);
 

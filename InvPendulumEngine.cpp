@@ -7,7 +7,7 @@ InvPendulumEngine::InvPendulumEngine()
 	this->time_step = 0.050; //50 ms
 
     this->pen_len = 1.0;
-    this->pen_mass = 1.0;
+    this->pen_mass = 5.0;
     this->pen_angle = 0.0;
 	this->pen_angular_vel = 0.0;
     this->cart_mass = 10.0;
