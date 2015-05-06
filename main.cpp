@@ -17,9 +17,9 @@ const int PIVOT_RADIAS = 10;
 const int CART_W = 60;
 const int CART_H = 40;
 
-const int CONTROLLER_FREQUENCY_SEC = 0.020;
-const int PHYSICS_ENGINE_FREQUENCY_SEC = 0.001;
-const int GRAPHICS_ENGINE_FREQUENCY_SEC = 0.033; //~30 fps
+const double CONTROLLER_FREQUENCY_SEC = 0.020;
+const double PHYSICS_ENGINE_FREQUENCY_SEC = 0.001;
+const double GRAPHICS_ENGINE_FREQUENCY_SEC = 1.0 / 60; //~30 fps
 
 bool physicsRunning = true;
 bool controllerRunning = true;
@@ -48,9 +48,25 @@ void drawCartAndRod(int x, float rodAngle, sf::RenderWindow& app) {
 
 void physicsPeriodic(InvPendulumEngine* eng)
 {
+    double accumulator = 0;
+    sf::Clock clock;
+    sf::Time prev_time = clock.getElapsedTime();
+    double timestep = PHYSICS_ENGINE_FREQUENCY_SEC;
+
     while(physicsRunning)
     {
-        eng->step();
+        sf::Time curr_time = clock.getElapsedTime();
+        sf::Time elapsed = curr_time - prev_time;
+        double dt = (double)elapsed.asSeconds();
+        prev_time = curr_time;
+        accumulator += dt;
+
+        while (accumulator >= timestep)
+        {
+            // step physics engine
+            eng->step();
+            accumulator -= timestep;
+        }
         sf::sleep(sf::seconds(PHYSICS_ENGINE_FREQUENCY_SEC));
     }
 }
@@ -59,18 +75,26 @@ double controllerFunc(double cart_pos, double pen_angle)
 {
     //Their controller code goes here
     //Returns a force on the cart
-    return 0.0;
+    double kp = 400;
+    double error_deg;
+    if (pen_angle < 180)
+        error_deg = pen_angle;
+    else
+        error_deg = pen_angle - 360;
+
+    return kp * error_deg;
 }
 
 void controllerPeriodic(InvPendulumEngine* eng)
 {
+    cout << "contollerPeriodic" << endl;
     while(controllerRunning)
     {
         m.lock();
         double cart_pos_local = eng->Get_cart_pos();
         double pen_angle_local = eng->Get_pen_angle();
         m.unlock();
-        double returnedForce = controllerFunc(cart_pos_local, pen_angle_local)
+        double returnedForce = controllerFunc(cart_pos_local, pen_angle_local);
         m.lock();
         eng->nextForce = returnedForce;
         m.unlock();
@@ -82,20 +106,14 @@ void controllerPeriodic(InvPendulumEngine* eng)
 int main()
 {
     // Create the main window
-    sf::RenderWindow app(sf::VideoMode(800, 600), "SFML window");
+    sf::RenderWindow app(sf::VideoMode(1280, 760), "SFML window");
 
-    InvPendulumEngine engine(m);
-    engine.Set_pen_angle(135.0);
+    InvPendulumEngine engine(&m);
+    engine.Set_pen_angle(1);
     engine.Set_time_step(PHYSICS_ENGINE_FREQUENCY_SEC);
 
     std::thread physicsThread(physicsPeriodic, &engine);
     std::thread controllerThread(controllerPeriodic, &engine);
-
-    /*double timestep = engine.Get_time_step();
-    double accumulator = 0;
-    sf::Clock clock;
-    sf::Time prev_time = clock.getElapsedTime();
-    sf::Time last_draw_time = prev_time;*/
 
 	// Start the game loop
     while (app.isOpen())
@@ -109,39 +127,16 @@ int main()
                 app.close();
         }
 
-        app.clear();
         m.lock();
-        int cart_pos = (int)engine.Get_cart_pos();
+        int cart_pos = (int)(engine.Get_cart_pos() * 100);
         int pen_angle = (int)engine.Get_pen_angle();
         m.unlock();
+
+        app.clear();
         drawCartAndRod(cart_pos + 500, pen_angle, app);
         app.display();
+
         sf::sleep(sf::seconds(GRAPHICS_ENGINE_FREQUENCY_SEC));
-
-
-
-        /*sf::Time curr_time = clock.getElapsedTime();
-        sf::Time elapsed = curr_time - prev_time;
-        double dt = (double)elapsed.asSeconds();
-        prev_time = curr_time;
-        accumulator += dt;
-
-        while (accumulator >= timestep)
-        {
-            // step physics engine
-            engine.step();
-            accumulator -= timestep;
-        }
-
-        if (curr_time - last_draw_time > sf::seconds(0.03f))
-        {
-            last_draw_time = curr_time;
-            // Clear screen
-            app.clear();
-            drawCartAndRod((int)engine.Get_cart_pos() + 500, (int)engine.Get_pen_angle(), app);
-            // Update the window
-            app.display();
-        }*/
     }
     physicsRunning = false;
     controllerRunning = false;

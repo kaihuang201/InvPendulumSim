@@ -10,7 +10,9 @@
 class InvPendulumEngine
 {
     public:
-        InvPendulumEngine(std::mutex &m);
+		double nextForce;
+
+        InvPendulumEngine(std::mutex *m);
         ~InvPendulumEngine();
         InvPendulumEngine(const InvPendulumEngine& other);
         InvPendulumEngine& operator=(const InvPendulumEngine& other);
@@ -61,11 +63,10 @@ class InvPendulumEngine
 		double cart_vel;
 
 		double force;
-		double nextForce;
 
         double gravity;
 
-        std::mutex mtx;
+        std::mutex *mtx;
 
         // controller function pointer, returns servo position signal.
         double (*controller) (double cart_pos, double pen_angle);
