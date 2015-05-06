@@ -1,6 +1,8 @@
 #ifndef INVPENDULUMENGINE_H
 #define INVPENDULUMENGINE_H
 
+#include <mutex>
+
 #define M_PI 3.14159265
 #define DEG_TO_RAD M_PI/180.0
 
@@ -8,7 +10,7 @@
 class InvPendulumEngine
 {
     public:
-        InvPendulumEngine();
+        InvPendulumEngine(std::mutex &m);
         ~InvPendulumEngine();
         InvPendulumEngine(const InvPendulumEngine& other);
         InvPendulumEngine& operator=(const InvPendulumEngine& other);
@@ -62,6 +64,8 @@ class InvPendulumEngine
 		double nextForce;
 
         double gravity;
+
+        std::mutex mtx;
 
         // controller function pointer, returns servo position signal.
         double (*controller) (double cart_pos, double pen_angle);

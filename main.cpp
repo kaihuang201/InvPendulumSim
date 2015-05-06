@@ -2,6 +2,8 @@
 #include <iostream>
 #include <stdio.h>
 #include <sys/time.h>
+#include <thread>
+#include <mutex>
 
 #include "InvPendulumEngine.h"
 
@@ -14,6 +16,15 @@ const int RAIL_Y = 400;
 const int PIVOT_RADIAS = 10;
 const int CART_W = 60;
 const int CART_H = 40;
+
+const int CONTROLLER_FREQUENCY_SEC = 0.020;
+const int PHYSICS_ENGINE_FREQUENCY_SEC = 0.001;
+const int GRAPHICS_ENGINE_FREQUENCY_SEC = 0.033; //~30 fps
+
+bool physicsRunning = true;
+bool controllerRunning = true;
+
+std::mutex m;
 
 void drawCartAndRod(int x, float rodAngle, sf::RenderWindow& app) {
     sf::RectangleShape cart(sf::Vector2f(CART_W, CART_H));
@@ -35,19 +46,56 @@ void drawCartAndRod(int x, float rodAngle, sf::RenderWindow& app) {
     app.draw(pivot);
 }
 
+void physicsPeriodic(InvPendulumEngine* eng)
+{
+    while(physicsRunning)
+    {
+        eng->step();
+        sf::sleep(sf::seconds(PHYSICS_ENGINE_FREQUENCY_SEC));
+    }
+}
+
+double controllerFunc(double cart_pos, double pen_angle)
+{
+    //Their controller code goes here
+    //Returns a force on the cart
+    return 0.0;
+}
+
+void controllerPeriodic(InvPendulumEngine* eng)
+{
+    while(controllerRunning)
+    {
+        m.lock();
+        double cart_pos_local = eng->Get_cart_pos();
+        double pen_angle_local = eng->Get_pen_angle();
+        m.unlock();
+        double returnedForce = controllerFunc(cart_pos_local, pen_angle_local)
+        m.lock();
+        eng->nextForce = returnedForce;
+        m.unlock();
+
+        sf::sleep(sf::seconds(CONTROLLER_FREQUENCY_SEC));
+    }
+}
+
 int main()
 {
     // Create the main window
     sf::RenderWindow app(sf::VideoMode(800, 600), "SFML window");
 
-    InvPendulumEngine engine;
-    engine.Set_pen_angle(45.0);
+    InvPendulumEngine engine(m);
+    engine.Set_pen_angle(135.0);
+    engine.Set_time_step(PHYSICS_ENGINE_FREQUENCY_SEC);
 
-    double timestep = engine.Get_time_step();
+    std::thread physicsThread(physicsPeriodic, &engine);
+    std::thread controllerThread(controllerPeriodic, &engine);
+
+    /*double timestep = engine.Get_time_step();
     double accumulator = 0;
     sf::Clock clock;
     sf::Time prev_time = clock.getElapsedTime();
-    sf::Time last_draw_time = prev_time;
+    sf::Time last_draw_time = prev_time;*/
 
 	// Start the game loop
     while (app.isOpen())
@@ -61,7 +109,18 @@ int main()
                 app.close();
         }
 
-        sf::Time curr_time = clock.getElapsedTime();
+        app.clear();
+        m.lock();
+        int cart_pos = (int)engine.Get_cart_pos();
+        int pen_angle = (int)engine.Get_pen_angle();
+        m.unlock();
+        drawCartAndRod(cart_pos + 500, pen_angle, app);
+        app.display();
+        sf::sleep(sf::seconds(GRAPHICS_ENGINE_FREQUENCY_SEC));
+
+
+
+        /*sf::Time curr_time = clock.getElapsedTime();
         sf::Time elapsed = curr_time - prev_time;
         double dt = (double)elapsed.asSeconds();
         prev_time = curr_time;
@@ -82,8 +141,13 @@ int main()
             drawCartAndRod((int)engine.Get_cart_pos() + 500, (int)engine.Get_pen_angle(), app);
             // Update the window
             app.display();
-        }
+        }*/
     }
+    physicsRunning = false;
+    controllerRunning = false;
+
+    physicsThread.join();
+    controllerThread.join();
 
     return EXIT_SUCCESS;
 }
