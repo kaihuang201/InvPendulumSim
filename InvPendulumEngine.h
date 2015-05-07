@@ -13,9 +13,6 @@ class InvPendulumEngine
 		double nextForce;
 
         InvPendulumEngine(std::mutex *m);
-        ~InvPendulumEngine();
-        InvPendulumEngine(const InvPendulumEngine& other);
-        InvPendulumEngine& operator=(const InvPendulumEngine& other);
 
         void step();
 
